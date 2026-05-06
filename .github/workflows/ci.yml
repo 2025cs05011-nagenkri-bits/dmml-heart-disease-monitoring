@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      demo_fail_on_drift:
+        description: "Demo: run drift gate against synthetic drifted data (CI will FAIL)"
+        type: boolean
+        required: false
+        default: false
 
 defaults:
   run:
@@ -68,6 +74,20 @@ jobs:
             --reference data/reference/reference_train_v1.0.0.csv \
             --current   data/demo/current_drifted.csv \
             --no-fail-on-drift
+
+      # On-demand FAILURE demo. Triggered only via the GitHub Actions UI
+      # when "demo_fail_on_drift" is set to true. Runs the same drift
+      # check WITHOUT --no-fail-on-drift, so CI exits non-zero and the
+      # workflow visibly turns red. Use this to demonstrate the gate
+      # actually rejecting a build.
+      - name: Drift gate FAILURE demo (manual trigger only)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.demo_fail_on_drift == true }}
+        run: |
+          echo "::warning::Running CI failure demo - this step is EXPECTED to fail"
+          python scripts/generate_drift_demo.py
+          python scripts/run_evidently.py \
+            --reference data/reference/reference_train_v1.0.0.csv \
+            --current   data/demo/current_drifted.csv
 
       - name: Upload training artifacts
         if: always()
