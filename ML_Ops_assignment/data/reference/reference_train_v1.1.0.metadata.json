@@ -1,0 +1,28 @@
+{
+  "version": "v1.1.0",
+  "source": "data/processed/train.csv",
+  "snapshot_path": "data/reference/reference_train_v1.1.0.csv",
+  "created_at_utc": "2026-05-06T16:53:24Z",
+  "git_commit": "f2343fb6c0923572c64fa8deb6439820ddf03a02",
+  "n_rows": 242,
+  "n_columns": 14,
+  "schema": {
+    "age": "float64",
+    "sex": "float64",
+    "cp": "float64",
+    "trestbps": "float64",
+    "chol": "float64",
+    "fbs": "float64",
+    "restecg": "float64",
+    "thalach": "float64",
+    "exang": "float64",
+    "oldpeak": "float64",
+    "slope": "float64",
+    "ca": "float64",
+    "thal": "float64",
+    "target": "int64"
+  },
+  "target_column": "target",
+  "target_prevalence": 0.45867768595041325,
+  "sha256": "0e538464efb58f8d1a9e91b90b79cc43f243b0d4691ef07ff606ab454a5a5d54"
+}

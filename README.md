@@ -77,19 +77,23 @@ flowchart LR
     │   ├── data/{prepare,preprocess}.py
     │   ├── training/train.py           # CV + GridSearchCV
     │   ├── evaluation/                 # metrics helpers
+    │   ├── monitoring/drift.py         # Evidently AI helpers (profile + drift)
     │   └── serving/app.py              # Flask + Prometheus instrumentation
-    ├── tests/                          # 22 pytest cases
+    ├── tests/                          # 29 pytest cases
     ├── models/heart_model.pkl          # trained sklearn Pipeline
     ├── reports/
     │   ├── metrics.json                # final test + CV metrics
     │   ├── figures/                    # EDA plots
+    │   ├── evidently/                  # data profile + drift HTML/JSON reports
     │   ├── screenshots/{k8s,monitoring}/   # demo screenshots
     │   └── Final_Report.docx           # 10-page report
+    ├── data/reference/                 # frozen training-set snapshots for drift baselines (committed)
+    ├── data/demo/                      # generated drift-demo CSVs (gitignored)
     ├── Dockerfile
     ├── k8s/                            # raw manifests (deploy/svc/cm/ns/ingress)
     ├── helm/heart-disease-api/         # Helm chart
     ├── monitoring/                     # Prometheus + Grafana values + dashboard CM
-    └── scripts/                        # setup / cleanup / traffic_simulator
+    └── scripts/                        # setup / cleanup / traffic_simulator / run_evidently / generate_drift_demo / freeze_reference
 ```
 
 ---
@@ -226,13 +230,85 @@ Tear down: `./scripts/cleanup_monitoring.sh`
 
 ---
 
+## Data profiling & drift detection (Evidently AI)
+
+Offline data-quality and distribution-shift checks built on top of
+[Evidently AI](https://www.evidentlyai.com/). Reports cover a single
+dataset (`DataQualityPreset`) and a reference-vs-current comparison
+(`DataDriftPreset` + `TargetDriftPreset`).
+
+### Frozen reference snapshot
+
+The drift gate compares against an immutable, version-tagged copy of
+the training set the production model was built on, committed under
+`data/reference/`:
+
+```
+data/reference/
+├── reference_train_v1.0.0.csv             # frozen training distribution
+└── reference_train_v1.0.0.metadata.json   # version, sha256, git commit, schema, prevalence
+```
+
+The snapshot is produced once via:
+
+```bash
+cd ML_Ops_assignment
+python scripts/freeze_reference.py --version v1.0.0
+# bump --version every time the production model is retrained on a new dataset
+```
+
+Both files are tracked in git so every CI run, every developer, and
+every drift report uses the exact same baseline. The metadata file
+makes the snapshot fully traceable (which commit produced it, what
+schema, what target prevalence, file hash).
+
+### Running the gate
+
+```bash
+cd ML_Ops_assignment
+
+# 1. Default: frozen v1.0.0 reference vs today's regenerated train.csv
+#    Catches changes to the raw data file or to src/data/prepare.py.
+python scripts/run_evidently.py
+# -> reports/evidently/profile_<ts>.html
+# -> reports/evidently/drift_<ts>.html
+# -> reports/evidently/drift_summary.json
+# -> exit 0 (no drift expected on a clean checkout)
+
+# 2. Generate two demo "current" datasets (healthy + synthetically drifted)
+python scripts/generate_drift_demo.py
+
+# 3. Healthy current -> exit 0
+python scripts/run_evidently.py --current data/demo/current_healthy.csv
+
+# 4. Drifted current -> exit 1, fails the CI gate
+python scripts/run_evidently.py --current data/demo/current_drifted.csv
+
+# 5. Override the gate (still produces the report, doesn't block):
+python scripts/run_evidently.py --current data/demo/current_drifted.csv \
+                                --no-fail-on-drift
+
+# 6. Production-style usage: compare against a fresh data dump
+python scripts/run_evidently.py \
+  --reference data/reference/reference_train_v1.0.0.csv \
+  --current   data/incoming/prod_sample_$(date +%F).csv
+```
+
+The script exits non-zero whenever Evidently flags
+`dataset_drift=True` (default threshold: ≥ 50 % of columns drifted), so
+the same command both produces the human-readable HTML and gates the
+CI pipeline. See `src/monitoring/drift.py` for the reusable helpers
+and `scripts/freeze_reference.py` for the snapshot tooling.
+
+---
+
 ## CI/CD
 
 `.github/workflows/ci.yml` runs on every push/PR to `main`:
 
 | Job | Steps |
 |---|---|
-| **test** | checkout → setup-python 3.9 → install deps → **ruff check** → regenerate splits → train model → **pytest** → **upload-artifact** (`heart_model.pkl`, `metrics.json`, `figures/`) |
+| **test** | checkout → setup-python 3.9 → install deps → **ruff check** → regenerate splits → train model → **pytest** (29) → **Evidently** profile + drift gate → **upload-artifact** (`heart_model.pkl`, `metrics.json`, `figures/`, `evidently/`) |
 | **docker** (needs test) | checkout → build model → `docker build` → `docker run -d` → curl `/health` and `/predict` smoke test |
 
 Artifacts are retained for 14 days under the run.

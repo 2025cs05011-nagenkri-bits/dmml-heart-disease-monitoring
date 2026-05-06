@@ -26,9 +26,23 @@ mlartifacts/
 ML_Ops_assignment/data/processed/*.csv
 # Trained models are reproducible from src/training/train.py
 ML_Ops_assignment/models/*.pkl
+# NOTE: ML_Ops_assignment/data/reference/ is intentionally NOT ignored.
+# It contains frozen training-set snapshots used as drift-detection
+# baselines (created via scripts/freeze_reference.py).
 
 # --- Reports artifacts (regenerable) ---
 ML_Ops_assignment/reports/metrics.json
+
+# --- Evidently AI reports (regenerable from scripts/run_evidently.py) ---
+ML_Ops_assignment/reports/evidently/*.html
+ML_Ops_assignment/reports/evidently/*.json
+!ML_Ops_assignment/reports/evidently/.gitkeep
+
+# --- Drift demo datasets (regenerable from scripts/generate_drift_demo.py) ---
+ML_Ops_assignment/data/demo/*.csv
+
+# --- Inference log written by the Flask app (Step 5, future) ---
+ML_Ops_assignment/data/inference_log.csv
 
 # --- IDE / editors ---
 .vscode/

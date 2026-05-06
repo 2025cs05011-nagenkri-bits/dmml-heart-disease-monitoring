@@ -47,6 +47,28 @@ jobs:
       - name: Run pytest
         run: python -m pytest tests/ --tb=short
 
+      # Compares the committed v1.0.0 reference snapshot against today's
+      # regenerated train.csv. Drift here means the raw data file or
+      # split logic in src/data/prepare.py has diverged from the
+      # baseline the production model was trained on.
+      - name: Data profiling & drift detection (Evidently)
+        run: |
+          python scripts/run_evidently.py \
+            --reference data/reference/reference_train_v1.0.0.csv \
+            --current   data/processed/train.csv
+
+      # Auxiliary demo: prove the gate visibly fires against synthetic
+      # drifted data. Uses --no-fail-on-drift so the build is not
+      # blocked; the report is still uploaded as an artifact.
+      - name: Drift gate demo (synthetic drifted current)
+        if: always()
+        run: |
+          python scripts/generate_drift_demo.py
+          python scripts/run_evidently.py \
+            --reference data/reference/reference_train_v1.0.0.csv \
+            --current   data/demo/current_drifted.csv \
+            --no-fail-on-drift
+
       - name: Upload training artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -56,6 +78,15 @@ jobs:
             ML_Ops_assignment/models/heart_model.pkl
             ML_Ops_assignment/reports/metrics.json
             ML_Ops_assignment/reports/figures/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload Evidently reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidently-reports-py${{ matrix.python-version }}
+          path: ML_Ops_assignment/reports/evidently/
           if-no-files-found: warn
           retention-days: 14
 
