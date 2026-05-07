@@ -65,9 +65,11 @@ jobs:
 
       # Auxiliary demo: prove the gate visibly fires against synthetic
       # drifted data. Uses --no-fail-on-drift so the build is not
-      # blocked; the report is still uploaded as an artifact.
+      # blocked; the report is still uploaded as an artifact. Only runs
+      # on manual workflow_dispatch to keep regular push/PR logs clean
+      # (the real gate above already proves the healthy path is green).
       - name: Drift gate demo (synthetic drifted current)
-        if: always()
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.demo_fail_on_drift }}
         run: |
           python scripts/generate_drift_demo.py
           python scripts/run_evidently.py \

@@ -8,14 +8,14 @@ Three responsibilities:
   - build_drift_report(ref, cur)     -> Report  (data + target drift)
   - save_report(report, name)        -> (html_path, json_path)
 
-Reports are written under reports/evidently/ with a timestamp suffix so
-historic runs are preserved (the directory is gitignored except for a
-.gitkeep placeholder).
+Reports are written under reports/evidently/ with stable filenames
+(<name>.html / <name>.json) so each run overwrites the previous one and
+the directory does not accumulate files. Per-run history is preserved
+by the CI artifact upload step.
 """
 
 import json
 import os
-from datetime import datetime
 
 import pandas as pd
 from evidently import ColumnMapping
@@ -80,12 +80,10 @@ def build_drift_report(
 
 
 def save_report(report: Report, name: str, output_dir: str = DEFAULT_OUTPUT_DIR):
-    """Write the report as HTML + JSON, returning both paths."""
+    """Write the report as HTML + JSON with stable filenames, returning both paths."""
     os.makedirs(output_dir, exist_ok=True)
-    ts = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    base = f"{name}_{ts}"
-    html_path = os.path.join(output_dir, f"{base}.html")
-    json_path = os.path.join(output_dir, f"{base}.json")
+    html_path = os.path.join(output_dir, f"{name}.html")
+    json_path = os.path.join(output_dir, f"{name}.json")
     report.save_html(html_path)
     with open(json_path, "w") as fh:
         json.dump(report.as_dict(), fh, indent=2, default=str)
