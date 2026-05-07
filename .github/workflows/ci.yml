@@ -75,13 +75,27 @@ jobs:
             --current   data/demo/current_drifted.csv \
             --no-fail-on-drift
 
+      # Debug: surface the workflow_dispatch input value in the run log so
+      # we can see exactly what the toggle was set to. Helps confirm the
+      # conditional below is firing (or explain why it isn't).
+      - name: Show workflow inputs (debug)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          echo "event_name           = ${{ github.event_name }}"
+          echo "demo_fail_on_drift   = ${{ inputs.demo_fail_on_drift }}"
+
       # On-demand FAILURE demo. Triggered only via the GitHub Actions UI
-      # when "demo_fail_on_drift" is set to true. Runs the same drift
-      # check WITHOUT --no-fail-on-drift, so CI exits non-zero and the
-      # workflow visibly turns red. Use this to demonstrate the gate
-      # actually rejecting a build.
+      # when "demo_fail_on_drift" is checked. Runs the same drift check
+      # WITHOUT --no-fail-on-drift, so CI exits non-zero and the workflow
+      # visibly turns red. Use this to demonstrate the gate actually
+      # rejecting a build.
+      #
+      # Note: we rely on truthy evaluation of `inputs.demo_fail_on_drift`
+      # instead of `== true` — boolean workflow_dispatch inputs are
+      # sometimes stringified ("true"/"false"), which makes the literal
+      # `== true` comparison silently false and skips the step.
       - name: Drift gate FAILURE demo (manual trigger only)
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.demo_fail_on_drift == true }}
+        if: ${{ inputs.demo_fail_on_drift }}
         run: |
           echo "::warning::Running CI failure demo - this step is EXPECTED to fail"
           python scripts/generate_drift_demo.py
