@@ -15,7 +15,7 @@ on:
 
 defaults:
   run:
-    working-directory: ML_Ops_assignment
+    working-directory: DMML_Evidently_Demo
 
 jobs:
   test:
@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
-          cache-dependency-path: ML_Ops_assignment/requirements*.txt
+          cache-dependency-path: DMML_Evidently_Demo/requirements*.txt
 
       - name: Install dependencies
         run: |
@@ -111,9 +111,9 @@ jobs:
         with:
           name: heart-disease-model-py${{ matrix.python-version }}
           path: |
-            ML_Ops_assignment/models/heart_model.pkl
-            ML_Ops_assignment/reports/metrics.json
-            ML_Ops_assignment/reports/figures/
+            DMML_Evidently_Demo/models/heart_model.pkl
+            DMML_Evidently_Demo/reports/metrics.json
+            DMML_Evidently_Demo/reports/figures/
           if-no-files-found: warn
           retention-days: 14
 
@@ -122,7 +122,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: evidently-reports-py${{ matrix.python-version }}
-          path: ML_Ops_assignment/reports/evidently/
+          path: DMML_Evidently_Demo/reports/evidently/
           if-no-files-found: warn
           retention-days: 14
 
@@ -139,7 +139,7 @@ jobs:
         with:
           python-version: "3.9"
           cache: pip
-          cache-dependency-path: ML_Ops_assignment/requirements*.txt
+          cache-dependency-path: DMML_Evidently_Demo/requirements*.txt
 
       - name: Install dependencies
         run: pip install -r requirements.txt -r requirements-dev.txt
@@ -155,8 +155,8 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@v6
         with:
-          context: ML_Ops_assignment
-          file: ML_Ops_assignment/Dockerfile
+          context: DMML_Evidently_Demo
+          file: DMML_Evidently_Demo/Dockerfile
           push: false
           load: true
           tags: heart-disease-api:ci-${{ github.sha }}

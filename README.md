@@ -69,7 +69,7 @@ flowchart LR
 ├── .github/workflows/ci.yml            # CI pipeline (lint, test, build, artifacts)
 ├── Mlops_Assignment1.pdf               # Assignment brief
 ├── README.md                           # This file
-└── ML_Ops_assignment/
+└── DMML_Evidently_Demo/
     ├── Raw_data/heart+disease/         # UCI dataset (committed)
     ├── data/processed/                 # train.csv / test.csv
     ├── notebooks/01_eda.ipynb          # Exploratory Data Analysis
@@ -101,13 +101,13 @@ flowchart LR
 ## Dataset
 
 The Cleveland Heart Disease dataset (UCI ML Repository, ID 45) is **already
-committed** to `ML_Ops_assignment/Raw_data/heart+disease/`, so reproducing
+committed** to `DMML_Evidently_Demo/Raw_data/heart+disease/`, so reproducing
 the pipeline requires no external download.
 
 If you ever need to re-fetch from the upstream archive, use the helper script:
 
 ```bash
-cd ML_Ops_assignment
+cd DMML_Evidently_Demo
 ./scripts/download_data.sh           # idempotent; skips if data present
 ./scripts/download_data.sh --force   # force re-download
 ```
@@ -115,7 +115,7 @@ cd ML_Ops_assignment
 Equivalent manual steps:
 
 ```bash
-cd ML_Ops_assignment/Raw_data
+cd DMML_Evidently_Demo/Raw_data
 curl -L -o heart-disease.zip \
     https://archive.ics.uci.edu/static/public/45/heart+disease.zip
 unzip -o heart-disease.zip -d heart+disease
@@ -131,7 +131,7 @@ The cleaned 80/20 train/test split is regenerated deterministically by
 
 ```bash
 # 1. Setup
-cd ML_Ops_assignment
+cd DMML_Evidently_Demo
 python3.9 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
 
@@ -162,7 +162,7 @@ curl -X POST http://localhost:8080/predict \
 ## Docker
 
 ```bash
-cd ML_Ops_assignment
+cd DMML_Evidently_Demo
 docker build -t heart-disease-api:v2 .
 docker run -p 8080:8080 heart-disease-api:v2
 ```
@@ -178,7 +178,7 @@ script in the image polls `/health` for liveness/readiness.
 Enable Kubernetes in Docker Desktop, then:
 
 ```bash
-cd ML_Ops_assignment
+cd DMML_Evidently_Demo
 ./scripts/setup_local_k8s.sh         # creates ns, builds image, helm install
 kubectl -n heart-disease get all
 curl http://localhost:8080/health
@@ -200,7 +200,7 @@ Tear down: `./scripts/cleanup_local_k8s.sh`
 ## Monitoring (Prometheus + Grafana)
 
 ```bash
-cd ML_Ops_assignment
+cd DMML_Evidently_Demo
 ./scripts/setup_monitoring.sh        # installs both via helm in ns 'monitoring'
 
 # Port-forward
@@ -252,7 +252,7 @@ data/reference/
 The snapshot is produced once via:
 
 ```bash
-cd ML_Ops_assignment
+cd DMML_Evidently_Demo
 python scripts/freeze_reference.py --version v1.0.0
 # bump --version every time the production model is retrained on a new dataset
 ```
@@ -265,7 +265,7 @@ schema, what target prevalence, file hash).
 ### Running the gate
 
 ```bash
-cd ML_Ops_assignment
+cd DMML_Evidently_Demo
 
 # 1. Default: frozen v1.0.0 reference vs today's regenerated train.csv
 #    Catches changes to the raw data file or to src/data/prepare.py.
@@ -327,9 +327,9 @@ the training set; selection metric is test-set ROC-AUC.
 | Random Forest | `n_estimators=100, max_depth=None` | 0.895 ± 0.026 | 0.945 | 0.900 | 0.902 |
 
 Full per-class precision/recall and confusion matrices are in
-`ML_Ops_assignment/reports/metrics.json`.
+`DMML_Evidently_Demo/reports/metrics.json`.
 
-EDA figures live in `ML_Ops_assignment/reports/figures/`:
+EDA figures live in `DMML_Evidently_Demo/reports/figures/`:
 `class_balance.png`, `feature_histograms.png`, `boxplots_by_target.png`,
 `correlation_heatmap.png`.
 

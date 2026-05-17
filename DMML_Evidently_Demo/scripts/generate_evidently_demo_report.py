@@ -11,7 +11,7 @@ appended manually onto the combined submission. Output:
 Reuses the architecture diagram and screenshots already produced for
 the longer DMML_Evidently_Report.docx.
 
-Usage (from ML_Ops_assignment/):
+Usage (from DMML_Evidently_Demo/):
   python -m scripts.generate_evidently_demo_report
 
 Requires: python-docx==1.1.2
@@ -313,7 +313,7 @@ def build_report() -> Document:
         "Disease UCI dataset using the Evidently AI tool!", italic=True)
     add_para(doc,
         "Source: scripts/run_evidently.py and src/monitoring/drift.py "
-        "in the ML_Ops_assignment repository.", italic=True)
+        "in the DMML_Evidently_Demo repository.", italic=True)
 
     # ---- 1. Introduction ----
     add_heading(doc, "1. Introduction", level=1)

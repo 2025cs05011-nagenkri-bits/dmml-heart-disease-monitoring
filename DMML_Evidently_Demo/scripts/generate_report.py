@@ -8,7 +8,7 @@ Reproducibly produces:
   - reports/Final_Report.docx                (~10-page final report)
 
 All inputs (metrics, EDA figures, screenshots) are pulled from disk -
-no retraining required. Run from the ML_Ops_assignment/ directory:
+no retraining required. Run from the DMML_Evidently_Demo/ directory:
 
   python -m scripts.generate_report
 

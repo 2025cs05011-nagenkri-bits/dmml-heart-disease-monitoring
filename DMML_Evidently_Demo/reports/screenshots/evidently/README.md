@@ -35,7 +35,7 @@ incrementally as you capture.
 ## How to (re)build the report
 
 ```bash
-cd ML_Ops_assignment
+cd DMML_Evidently_Demo
 source venv/bin/activate
 pip install python-docx==1.1.2          # one-time, if not installed
 python -m scripts.generate_dmml_report

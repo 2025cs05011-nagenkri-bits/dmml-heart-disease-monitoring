@@ -13,7 +13,7 @@ README in that folder for filenames and capture guidance). Missing
 screenshots are silently skipped so the report can be rebuilt
 incrementally as captures are added.
 
-Usage (from ML_Ops_assignment/):
+Usage (from DMML_Evidently_Demo/):
   python -m scripts.generate_dmml_report
 
 Requires: python-docx==1.1.2  (in addition to requirements-dev.txt)
@@ -345,7 +345,7 @@ def build_report() -> Document:
     add_bullets(doc, [
         "Evidently AI 0.4.40 - the DMML library providing DataDriftPreset, "
         "TargetDriftPreset and DataQualityPreset.",
-        "Python 3.9 in a project-local venv (ML_Ops_assignment/venv); "
+        "Python 3.9 in a project-local venv (DMML_Evidently_Demo/venv); "
         "scikit-learn 1.6.1 and pandas 2.3.3 are inherited from the "
         "production runtime image and pinned via requirements.txt.",
         "GitHub Actions for continuous integration, with the workflow "
@@ -355,7 +355,7 @@ def build_report() -> Document:
         "(data/reference/) used for every drift comparison.",
     ])
     add_para(doc,
-        "All work is contained in the ML_Ops_assignment/ subproject of "
+        "All work is contained in the DMML_Evidently_Demo/ subproject of "
         "the DMML_Project workspace. Reproducing this report end-to-end "
         "from a clean checkout requires only `pip install -r "
         "requirements.txt -r requirements-dev.txt` followed by `python "
